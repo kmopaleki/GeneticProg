@@ -31,5 +31,12 @@ public class GeneticProgram {
 
     }
 
+    private String getFormula(Node node){
+        String string = "";
+
+        return string;
+
+    }
+
 
 }
