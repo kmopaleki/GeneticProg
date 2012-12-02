@@ -150,7 +150,7 @@ public class PopulationTreeMember {
         }else if(rootNode.getOperation().equals("x")){
             rootNode.setChildren(new Vector<Node>());
         }else if(rootNode.getOperation().equals("R")){
-            rootNode.setValue(random.nextInt(50));
+            rootNode.setValue(random.nextInt(Integer.MAX_VALUE));
         }
 
         setRootNode(rootNode);
@@ -238,4 +238,9 @@ public class PopulationTreeMember {
         int choice = random.nextInt(9);
         return choices[choice];
     }
+
+    private String printFormula(){
+        return "";
+    }
+
 }
