@@ -31,12 +31,29 @@ public class GeneticProgram {
 
     }
 
-    private String getFormula(Node node){
-        String string = "";
+    public String getFormula(Node node){
+        if(node.getOperation().equals("sin"))
+        {
+            return "sin("+ getFormula(node.getChildren().get(0)) + ")";
+        }else if(node.getOperation().equals("cos")){
+            return "cos("+getFormula(node.getChildren().get(1)) + ")";
+        }else if(node.getOperation().equals("x")){
+            return "x";
+        }else if(node.getOperation().equals("power(,)")){
+            return "power(" + getFormula(node.getChildren().get(0)) + "," + getFormula(node.getChildren().get(1)) + ")";
+        }else if(node.getOperation().equals("+")){
+            return "(" + getFormula(node.getChildren().get(0)) + " + "+ getFormula(node.getChildren().get(1)) + ")";
+        }else if(node.getOperation().equals("-")){
+            return "(" + getFormula(node.getChildren().get(0)) + " - "+ getFormula(node.getChildren().get(1)) + ")";
+        }else if(node.getOperation().equals("/")){
+            return "(" + getFormula(node.getChildren().get(0)) + " / "+ getFormula(node.getChildren().get(1)) + ")";
+        }else if(node.getOperation().equals(".")){
+            return "(" + getFormula(node.getChildren().get(0)) + " * "+ getFormula(node.getChildren().get(1))+ ")";
+        }else if(node.getOperation().equals("R")){
+            return String.valueOf(node.getValue());
+        }
 
-        return string;
+        return "FAIL";
 
     }
-
-
 }
