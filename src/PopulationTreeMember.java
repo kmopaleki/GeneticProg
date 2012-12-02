@@ -225,10 +225,6 @@ public class PopulationTreeMember {
         return fitnessValue;
     }
 
-    public void setFitnessValue(double fitnessValue) {
-        this.fitnessValue = fitnessValue;
-    }
-
     public Random getRandom() {
         return random;
     }
@@ -267,8 +263,22 @@ public class PopulationTreeMember {
         return choices[choice];
     }
 
-    private String printFormula(){
-        return "";
+
+    public Double getError(Double y, Double terminal){
+        return Math.abs((getValue(getRootNode(),terminal)-y)/y);
     }
+
+    public void setFitnessValue(double fitnessValue,double[] xList,double [] yList){
+        Double fitness = 0.0;
+        for(int i =0; i<xList.length; i++ ){
+            fitness = fitness + getError(yList[i],xList[i]);
+        }
+
+        this.fitnessValue = fitness;
+
+    }
+
+
+
 
 }
