@@ -11,9 +11,14 @@ public class Node {
     private String operation;
     private Random random;
     private Node parentNode;
+    private boolean swapFlag;
+    private boolean mutateFlag;
 
     public Node(Random random) {
         this.random = random;
+        this.swapFlag = false;
+        this.mutateFlag = false;
+        this.children = new Vector<Node>();
     }
 
     public double getValue() {
@@ -54,5 +59,21 @@ public class Node {
 
     public void setParentNode(Node parentNode) {
         this.parentNode = parentNode;
+    }
+
+    public boolean isSwapFlag() {
+        return swapFlag;
+    }
+
+    public void setSwapFlag(boolean swapFlag) {
+        this.swapFlag = swapFlag;
+    }
+
+    public boolean isMutateFlag() {
+        return mutateFlag;
+    }
+
+    public void setMutateFlag(boolean mutateFlag) {
+        this.mutateFlag = mutateFlag;
     }
 }

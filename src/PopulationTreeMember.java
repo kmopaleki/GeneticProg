@@ -28,6 +28,10 @@ public class PopulationTreeMember {
         initialize();
     }
 
+    public PopulationTreeMember(Random random) {
+        this.random = random;
+    }
+
     /*
       Functions
      */
