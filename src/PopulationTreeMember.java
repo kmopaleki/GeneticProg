@@ -154,7 +154,7 @@ public class PopulationTreeMember {
         }else if(rootNode.getOperation().equals("x")){
             rootNode.setChildren(new Vector<Node>());
         }else if(rootNode.getOperation().equals("R")){
-            rootNode.setValue(random.nextInt(Integer.MAX_VALUE));
+            rootNode.setValue(random.nextDouble());
         }
 
         setRootNode(rootNode);
@@ -269,17 +269,21 @@ public class PopulationTreeMember {
 
 
     public Double getError(Double y, Double terminal){
-        return Math.abs((getValue(getRootNode(),terminal)-y)/y);
+        return Math.abs((getValue(getRootNode(),terminal)-y));
     }
 
-    public void setFitnessValue(double fitnessValue,double[] xList,double [] yList){
-        Double fitness = 0.0;
+    public void setFitnessValue(double [] xList,double [] yList){
+        double fitness = 0.0;
         for(int i =0; i<xList.length; i++ ){
             fitness = fitness + getError(yList[i],xList[i]);
         }
 
         this.fitnessValue = fitness;
 
+    }
+
+    public void setFitnessValue(Double fitnessValue){
+        this.fitnessValue = fitnessValue;
     }
 
 

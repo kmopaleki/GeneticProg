@@ -1,4 +1,7 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  * User: Kevin
@@ -6,16 +9,53 @@ import java.util.Random;
  */
 public class Main {
 
-    public static void main(String args[]){
-//        Random random = new Random(1234567L);
-//        int maxDepth = 5;
-//        for(int i = 0; i<100; i++){
-//            PopulationTreeMember populationTreeMember = new PopulationTreeMember(random,maxDepth);
-//            System.out.println(populationTreeMember.getFormula(populationTreeMember.getRootNode()));
-//            System.out.println(populationTreeMember.getError(12.00,7.0));
-//        }
+    public static void main(String args[]) throws FileNotFoundException {
 
-        GeneticProgram geneticProgram = new GeneticProgram();
+        File inFile = new File(args[0]);
+        Scanner s = new Scanner(inFile);
+        int numberOfRuns = 0;
+        int numberOfEvals = 0;
+        int populationSize = 0;
+        int probabilityOfRecombination = 17;
+        long randomSeed = 0L;
+        int maxDepth = 3;
+        String solutionFile = "";
+        String logFile = "";
+        String dataFile = "";
+        double penaltyScaler = 0.0;
+        int counter = 0;
+
+        while(s.hasNext()){
+            if(counter == 0){
+                dataFile = s.next();
+            }else if(counter ==1){
+                logFile = s.next();
+            }else if(counter==2){
+                solutionFile = s.next();
+            }else if(counter==3){
+                populationSize = Integer.parseInt(s.next());
+            }else if(counter == 4){
+                numberOfRuns = Integer.parseInt(s.next());
+            }else if(counter ==5){
+                numberOfEvals = Integer.parseInt(s.next());
+            }else if(counter == 6){
+                randomSeed = Long.parseLong(s.next());
+            }else if(counter == 7){
+                maxDepth = Integer.parseInt(s.next());
+
+            }else if(counter == 8){
+                penaltyScaler = Double.parseDouble(s.next());
+            }else if(counter == 9){
+                probabilityOfRecombination = Integer.parseInt(s.next());
+            }
+
+            counter++;
+        }
+
+
+
+        GeneticProgram geneticProgram = new GeneticProgram(logFile,solutionFile,dataFile,numberOfRuns,
+                numberOfEvals,populationSize,probabilityOfRecombination,randomSeed,maxDepth,penaltyScaler);
         geneticProgram.GP();
 
 

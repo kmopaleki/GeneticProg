@@ -1,7 +1,7 @@
 import java.awt.image.AreaAveragingScaleFilter;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Vector;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.*;
 
 /**
  * User: Kevin
@@ -11,66 +11,103 @@ public class GeneticProgram {
 
     private int numberOfRuns;
     private int numberOfEvals;
-    private int kSelection;
-    private int kSurvival;
     private int populationSize;
-    private int numChildren;
-    private int numParents;
+    private double penaltyScalar;
     private int probabilityOfRecombination;
     private boolean isMutated;
     private Random random;
     private long randomSeed;
     private int maxDepth;
     boolean parentflagged = false;
-    private Node swapper1;
-    private Node swapper2;
+    private PopulationTreeMember swapper1;
+    private PopulationTreeMember swapper2;
     private Node child1;
     private Node child2;
-
-    public GeneticProgram(int numberOfRuns, int numberOfEvals,
-                          int kSelection, int kSurvival,
-                          int populationSize, int numChildren,
-                          int numParents, int probabilityOfRecombination,
-                          long randomSeed, int maxDepth) {
-        this.numberOfRuns = numberOfRuns;
-        this.numberOfEvals = numberOfEvals;
-        this.kSelection = kSelection;
-        this.kSurvival = kSurvival;
-        this.populationSize = populationSize;
-        this.numChildren = numChildren;
-        this.numParents = numParents;
-        this.probabilityOfRecombination = probabilityOfRecombination;
-        this.randomSeed = randomSeed;
-        this.random= new Random(randomSeed);
-        this.maxDepth = maxDepth;
-    }
+    private String theLogFile;
+    private String theSolutionFile;
+    private String theDataFile;
+    private int numberOfPairs;
+    private double[] xArray;
+    private double[] yArray;
 
     public GeneticProgram() {
     }
 
-    public void GP(){
-        random = new Random(12345555567L);
-        maxDepth = 5;
-        ArrayList<PopulationTreeMember> populationTreeMembers = new ArrayList<PopulationTreeMember>();
-        ArrayList<PopulationTreeMember> crapPopulation = new ArrayList<PopulationTreeMember>();
-        ArrayList<PopulationTreeMember> goodPopulation = new ArrayList<PopulationTreeMember>();
+    public GeneticProgram(String theLogFile,String theSolutionFile,String theDataFile,
+                          int numberOfRuns, int numberOfEvals, int populationSize,
+                          int probabilityOfRecombination, long randomSeed,
+                          int maxDepth,double penaltyScalar) {
+        this.theLogFile = theLogFile;
+        this.theSolutionFile = theSolutionFile;
+        this.theDataFile = theDataFile;
+        this.numberOfRuns = numberOfRuns;
+        this.numberOfEvals = numberOfEvals;
+        this.populationSize = populationSize;
+        this.probabilityOfRecombination = probabilityOfRecombination;
+        this.random = new Random(randomSeed);
+        this.maxDepth = maxDepth;
+        this.swapper1 = new PopulationTreeMember();
+        this.swapper2 = new PopulationTreeMember();
+        this.theLogFile = theLogFile;
+        this.theDataFile = theDataFile;
+        this.theSolutionFile = theSolutionFile;
+        this.penaltyScalar = penaltyScalar;
 
-        for(int i = 0; i<100; i++){
-            PopulationTreeMember populationTreeMember = new PopulationTreeMember(random,maxDepth);
-            populationTreeMembers.add(populationTreeMember);
-        }
-        ArrayList<PopulationTreeMember>children = new ArrayList<PopulationTreeMember>();
-        treeCrossover(populationTreeMembers,children);
-        System.out.println(populationTreeMembers.get(0).getFormula(populationTreeMembers.get(0).getRootNode()));
-        System.out.println(children.get(0).getFormula(children.get(0).getRootNode()));
     }
 
-    private void treeCrossover(ArrayList<PopulationTreeMember> parentPopulation,ArrayList<PopulationTreeMember> children){
+    public void GP() throws FileNotFoundException {
+        for(int i = 0; i<numberOfRuns; i++){
+            //Initialize the Population
+            buildXYArrays();
+            ArrayList<PopulationTreeMember> populationTreeMembers = new ArrayList<PopulationTreeMember>();
+            while(populationTreeMembers.size()<populationSize){
+                PopulationTreeMember populationTreeMember = new PopulationTreeMember(random,maxDepth);
 
-        PopulationTreeMember parent1 = new PopulationTreeMember();
-        parent1.setRootNode(parentPopulation.get(0).getRootNode());
+                populationTreeMember.setFitnessValue(xArray,yArray);
+                if(!Double.isNaN(populationTreeMember.getFitnessValue())&&!Double.isInfinite(populationTreeMember.getFitnessValue())){
+                    populationTreeMembers.add(populationTreeMember);
+                }
+//                populationTreeMembers.add(populationTreeMember);
 
-        PopulationTreeMember parent2 = parentPopulation.get(1);
+            }
+            //EVALUATE THE INITIAL POPULATION
+            for(int j = 0; j<populationTreeMembers.size(); j++){
+                populationTreeMembers.get(j).setFitnessValue(xArray,yArray);
+
+            }
+
+            //EVALUATE THE NANS & INFINITY
+            for(int j = 0; j<populationTreeMembers.size(); j++){
+                if(Double.isNaN(populationTreeMembers.get(j).getFitnessValue())){
+                    populationTreeMembers.get(j).setFitnessValue(populationTreeMembers.get(j).getFitnessValue()+penaltyScalar);
+                }
+            }
+            for(int j = 0; j<numberOfEvals; j++){
+                ArrayList<PopulationTreeMember> childPopulation = new ArrayList<PopulationTreeMember>();
+                ArrayList<PopulationTreeMember> parentPopulation = new ArrayList<PopulationTreeMember>();
+                //SORT PARENTS AND PLACE INTO PROPORTIONS
+
+                insertionSort(populationTreeMembers);
+
+//                while(childPopulation.size()<populationSize){
+//                    int randomChoice = random.nextInt(100);
+//                    if(randomChoice<=probabilityOfRecombination){
+////                        treeCrossover();
+//                    }else{
+//                        treeMutation(populationTreeMembers,childPopulation);
+//                    }
+//                }
+
+                //EVALUATE CHILDREN
+
+                //KILL ALL PARENTS, add all children
+
+
+            }
+        }
+    }
+
+    private void treeCrossover(PopulationTreeMember parent1,PopulationTreeMember parent2,ArrayList<PopulationTreeMember> children){
         setAllToFalse(parent1.getRootNode());
         setAllToFalse(parent2.getRootNode());
         parentflagged = false;
@@ -83,6 +120,8 @@ public class GeneticProgram {
         }
 
         //Grab nodes to be swapped
+        swapper1 = new PopulationTreeMember();
+        swapper2 = new PopulationTreeMember();
         setSwapper1(parent1.getRootNode());
         setSwapper2(parent2.getRootNode());
 
@@ -98,17 +137,17 @@ public class GeneticProgram {
         swapNodes1(childNode);
         swapNodes2(childNode2);
 
+
         children.add(childNode);
-        children.add(childNode2);
-
-//        System.out.println(parent1.getFormula(parent1.getRootNode()));
-//        System.out.println(children.get(0).getFormula(children.get(0).getRootNode()));
-
+        if(children.size()<populationSize){
+            children.add(childNode2);
+        }
     }
 
 
 
     private void fitnessProportionalSelection(ArrayList<PopulationTreeMember> population){
+
 
     }
 
@@ -151,7 +190,10 @@ public class GeneticProgram {
 
     private void setSwapper1(Node node){
         if(node.isSwapFlag()){
-            this.swapper1 = node;
+            Node node1 = new Node(random);
+            node1.setChildren(node.getChildren());
+            node1.setOperation(node.getOperation());
+            swapper1.setRootNode(node1);
         }else{
             for(int i = 0; i<node.getChildren().size(); i++){
                 setSwapper1(node.getChildren().get(i));
@@ -161,7 +203,7 @@ public class GeneticProgram {
 
     private void setSwapper2(Node node){
         if(node.isSwapFlag()){
-            this.swapper2 = node;
+            swapper2.setRootNode(node);
         }else{
             for(int i = 0; i<node.getChildren().size(); i++){
                 setSwapper2(node.getChildren().get(i));
@@ -171,7 +213,7 @@ public class GeneticProgram {
 
     private void swapNodes1(PopulationTreeMember populationTreeMember) {
         if(populationTreeMember.getRootNode().isSwapFlag()){
-            populationTreeMember.setRootNode(swapper2);
+            populationTreeMember.setRootNode(swapper2.getRootNode());
         }else{
             exchange1(populationTreeMember.getRootNode());
         }
@@ -182,7 +224,7 @@ public class GeneticProgram {
     private void exchange1(Node node){
         for(int i = 0; i<node.getChildren().size();i++){
             if(node.getChildren().get(i).isSwapFlag()){
-                node.getChildren().set(i,swapper2);
+                node.getChildren().set(i,swapper2.getRootNode());
                 return;
             }
             exchange1(node.getChildren().get(i));
@@ -192,7 +234,7 @@ public class GeneticProgram {
 
     private void swapNodes2(PopulationTreeMember populationTreeMember){
         if(populationTreeMember.getRootNode().isSwapFlag()){
-            populationTreeMember.setRootNode(swapper1);
+            populationTreeMember.setRootNode(swapper1.getRootNode());
         }else{
             exchange2(populationTreeMember.getRootNode());
         }
@@ -201,7 +243,7 @@ public class GeneticProgram {
     private void exchange2(Node node){
         for(int i = 0; i<node.getChildren().size();i++){
             if(node.getChildren().get(i).isSwapFlag()){
-                node.getChildren().set(i,swapper1);
+                node.getChildren().set(i,swapper1.getRootNode());
                 return;
             }
             exchange1(node.getChildren().get(i));
@@ -220,7 +262,36 @@ public class GeneticProgram {
 
     }
 
+    private void buildXYArrays() throws FileNotFoundException {
+        File inFile = new File(theDataFile);
+        Scanner s = new Scanner(inFile);
+        String crap = s.nextLine();
+        numberOfPairs=Integer.parseInt(s.nextLine());
+        xArray = new double[numberOfPairs];
+        yArray = new double[numberOfPairs];
+        String crap2 = s.nextLine();
+        String[] xyPairs = new String[numberOfPairs];
+        int counter = 0;
+        while(s.hasNextLine()){
+            xyPairs[counter] = s.nextLine();
+            String[] tempArray = xyPairs[counter].split(",");
+            xArray[counter] = Double.parseDouble(tempArray[0]);
+            yArray[counter] = Double.parseDouble(tempArray[1]);
+            counter++;
+        }
+    }
 
+    private void insertionSort(ArrayList<PopulationTreeMember> populationTreeMembers){
+        for(int i = 1; i<populationTreeMembers.size(); i++){
+            int j = i;
+            PopulationTreeMember B = populationTreeMembers.get(i);
+            while((j>0)&&(populationTreeMembers.get(j-1).getFitnessValue()>B.getFitnessValue())){
+                populationTreeMembers.set(j,populationTreeMembers.get(j-1));
+                j--;
+            }
+            populationTreeMembers.set(j,B);
+        }
+    }
 
 
 
