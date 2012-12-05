@@ -161,9 +161,9 @@ public class PopulationTreeMember {
         }else if(rootNode.getOperation().equals("R")){
             int choice = random.nextInt(2);
             if(choice==1){
-            rootNode.setValue((double)random.nextInt(12));
+            rootNode.setValue((double)random.nextInt(Integer.MAX_VALUE));
             }else{
-                rootNode.setValue((-1)*((double)random.nextInt(12)));
+                rootNode.setValue((-1)*((double)random.nextInt(Integer.MAX_VALUE)));
             }
 
         }
@@ -279,14 +279,14 @@ public class PopulationTreeMember {
     }
 
 
-    public Double getError(Double y, Double terminal){
+    public double getError(double y, double terminal){
         return Math.abs((getValue(getRootNode(),terminal)-y));
     }
 
     public void setFitnessValue(double [] xList,double [] yList){
         double fitness = 0.0;
         for(int i =0; i<xList.length; i++ ){
-            fitness = fitness + getError(yList[i],xList[i]);
+            fitness = (fitness + getError(yList[i],xList[i]));
         }
         this.fitnessValue = fitness;
 

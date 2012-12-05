@@ -1,5 +1,4 @@
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -62,18 +61,35 @@ public class GeneticProgram {
 
     }
 
-    public void GP() throws FileNotFoundException {
+    public void GP() throws IOException {
+
+        FileWriter LogFile = new FileWriter(theLogFile,true);
+        FileWriter SolutionFile = new FileWriter(theSolutionFile,true);
+        BufferedWriter outLog = new BufferedWriter(LogFile);
+        BufferedWriter solutionLog = new BufferedWriter(SolutionFile);
+
+        outLog.write("Result Log" + "\r\n");
+        outLog.write("Number of Runs: " + "Number of Evaluations per Run: " + numberOfEvals+ "\r\n");
+        outLog.write("Population Size: " + populationSize + "\r\n");
+        outLog.write("Number of Parents: " + numParents + "\r\n");
+        outLog.write("Parent SelectionALg: " + "Tournament Selection" + "\r\n");
+        outLog.write("kParents: " + kParents + "\r\n");
+        outLog.write("Probability of Mutation: " + (double)mutationProbability/(double)100 + "\r\n");
+        outLog.write("Probability of Recombination: " + (double)probabilityOfRecombination/(double)100 + "\r\n");
+        outLog.write("Result Log" + "\r\n");
+
+        double currentOverAllBest = 0.00;
+        String currentOverAllBestString = "";
         for(int i = 0; i<numberOfRuns; i++){
             //Initialize the Population
+            int childcounter = populationSize;
             buildXYArrays();
             ArrayList<PopulationTreeMember> populationTreeMembers = new ArrayList<PopulationTreeMember>();
             while(populationTreeMembers.size()<populationSize){
                 PopulationTreeMember populationTreeMember = new PopulationTreeMember(random,maxDepth);
 
                 populationTreeMember.setFitnessValue(xArray,yArray);
-//                if(!Double.isNaN(populationTreeMember.getFitnessValue())&&!Double.isInfinite(populationTreeMember.getFitnessValue())){
                     populationTreeMembers.add(populationTreeMember);
-//                }
             }
             //EVALUATE THE INITIAL POPULATION
             for(int j = 0; j<populationTreeMembers.size(); j++){
@@ -88,12 +104,24 @@ public class GeneticProgram {
                     populationTreeMembers.get(j).setFitnessValue(highestValue);
                 }
             }
+            double currentLocalBest;
+            mergeSort(populationTreeMembers,0,populationTreeMembers.size()-1);
+            currentLocalBest = populationTreeMembers.get(0).getFitnessValue();
+            String currentBestFormula = populationTreeMembers.get(0).getFormula(populationTreeMembers.get(0).getRootNode());
+            if(i==0){
+                currentOverAllBest = currentLocalBest;
+                currentOverAllBestString = currentBestFormula;
+            }
 
-            //EVALUATE THE NANS & INFINITY
-            for(int j = 0; j<numberOfEvals; j++){
+
+
+            double prevLocalBest = 0.0000;
+            outLog.write("Run #: " + (i+1)+"\r\n");
+            int evalCounter = 0;
+            while(evalCounter<numberOfEvals){
                 ArrayList<PopulationTreeMember> childPopulation = new ArrayList<PopulationTreeMember>();
                 ArrayList<PopulationTreeMember> parentPopulation = new ArrayList<PopulationTreeMember>();
-                System.out.println("Run #: " + i + " Eval #: " + j);
+                System.out.println("Run #: " + i + " Eval #: " + evalCounter);
 
                 //SELECT PARENTS
                 TournamentSelection(populationTreeMembers, parentPopulation);
@@ -107,23 +135,41 @@ public class GeneticProgram {
                         treeMutation(parentPopulation,childPopulation);
                     }
                 }
-
-
-
                 //KILL ALL PARENTS, add all children
                 populationTreeMembers.clear();
                 assert(populationTreeMembers.size()==0);
                 populationTreeMembers.addAll(childPopulation);
+                highestValue = getHighestValue(populationTreeMembers);
+
                 for(int k = 0; k<populationTreeMembers.size(); k++){
                     if(Double.isNaN(populationTreeMembers.get(k).getFitnessValue())||Double.isInfinite(populationTreeMembers.get(k).getFitnessValue())){
                         populationTreeMembers.get(k).setFitnessValue(highestValue);
                     }
                 }
-//                mergeSort(populationTreeMembers,0,populationTreeMembers.size()-1);
-//                System.out.println(populationTreeMembers.get(0).getFitnessValue());
+                mergeSort(populationTreeMembers,0,populationTreeMembers.size()-1);
 
+                currentLocalBest = populationTreeMembers.get(0).getFitnessValue();
+                currentBestFormula = populationTreeMembers.get(0).getFormula(populationTreeMembers.get(0).getRootNode());
+                if(currentLocalBest<currentOverAllBest){
+                    currentOverAllBest = currentLocalBest;
+                    currentOverAllBestString = currentBestFormula;
+                }
+
+                if(evalCounter%populationSize==0){
+                    double localAverage = getAverageFitness(populationTreeMembers);
+                    outLog.write(childcounter + "\t" + (-1)*localAverage + "\t" + (-1)*currentLocalBest + "\r\n");
+                    childcounter = childcounter + populationSize;
+                }
+
+
+                evalCounter++;
             }
         }
+
+        solutionLog.write(currentOverAllBestString+"\r\n");
+
+        outLog.close();
+        solutionLog.close();
     }
 
     private void treeCrossover(PopulationTreeMember parent1,PopulationTreeMember parent2,ArrayList<PopulationTreeMember> children){
@@ -183,12 +229,14 @@ public class GeneticProgram {
         isMutated = false;
         PopulationTreeMember child = new PopulationTreeMember(random);
         child.copy(parent);
-        setMutateFlag(child.getRootNode());
+        while (!isMutated){
+            setMutateFlag(child.getRootNode());
+        }
         mutateNode(child.getRootNode());
         child.setFitnessValue(xArray, yArray);
-        if(!Double.isInfinite(child.getFitnessValue())&&!Double.isNaN(child.getFitnessValue())){
+//        if(!Double.isInfinite(child.getFitnessValue())&&!Double.isNaN(child.getFitnessValue())){
             children.add(child);
-        }
+//        }
 
     }
 
@@ -441,9 +489,9 @@ public class GeneticProgram {
         }else if(insertNode.getOperation().equals("R")){
             int choice = random.nextInt(2);
             if(choice==1){
-                insertNode.setValue((double)random.nextInt(12));
+                insertNode.setValue((double)random.nextInt(Integer.MAX_VALUE));
             }else{
-                insertNode.setValue((-1)*((double)random.nextInt(12)));
+                insertNode.setValue((-1)*((double)random.nextInt(Integer.MAX_VALUE)));
             }
         }
         parentNode.getChildren().add(insertNode);
