@@ -22,6 +22,7 @@ public class PopulationTreeMember {
     public PopulationTreeMember() {
     }
 
+
     public PopulationTreeMember(Random random, int maxDepth) {
         this.maxDepth = maxDepth;
         this.random = random;
@@ -91,8 +92,12 @@ public class PopulationTreeMember {
 
 
         }else if(insertNode.getOperation().equals("R")){
-            insertNode.setChildren(new Vector<Node>());
-            insertNode.setValue((double)random.nextInt(50));
+            int choice = random.nextInt(2);
+            if(choice==1){
+                insertNode.setValue((double)random.nextInt(12));
+            }else{
+                insertNode.setValue((-1)*((double)random.nextInt(12)));
+            }
         }
         parentNode.getChildren().add(insertNode);
     }
@@ -154,7 +159,13 @@ public class PopulationTreeMember {
         }else if(rootNode.getOperation().equals("x")){
             rootNode.setChildren(new Vector<Node>());
         }else if(rootNode.getOperation().equals("R")){
-            rootNode.setValue(random.nextDouble());
+            int choice = random.nextInt(2);
+            if(choice==1){
+            rootNode.setValue((double)random.nextInt(12));
+            }else{
+                rootNode.setValue((-1)*((double)random.nextInt(12)));
+            }
+
         }
 
         setRootNode(rootNode);
@@ -277,13 +288,131 @@ public class PopulationTreeMember {
         for(int i =0; i<xList.length; i++ ){
             fitness = fitness + getError(yList[i],xList[i]);
         }
-
         this.fitnessValue = fitness;
 
     }
 
     public void setFitnessValue(Double fitnessValue){
         this.fitnessValue = fitnessValue;
+    }
+
+    public void copy(PopulationTreeMember y){
+        rootNode = new Node(random);
+        rootNode.setParentNode(null);
+        rootNode.setOperation(y.getRootNode().getOperation());
+        if(rootNode.getOperation().equals("sin")){
+            rootNode.setChildren(new Vector<Node>());
+            for(int i = 0; i<1; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
+
+            }
+        }else if(rootNode.getOperation().equals("cos")){
+            rootNode.setChildren(new Vector<Node>());
+            for(int i = 0; i<1; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
+
+            }
+        }else if(rootNode.getOperation().equals("/")){
+            rootNode.setChildren(new Vector<Node>());
+            for(int i = 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
+
+            }
+        }else if(rootNode.getOperation().equals("+")){
+            rootNode.setChildren(new Vector<Node>());
+            for(int i = 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
+
+            }
+        }else if(rootNode.getOperation().equals("-")){
+            rootNode.setChildren(new Vector<Node>());
+            for(int i = 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
+
+            }
+        }else if(rootNode.getOperation().equals(".")){
+            rootNode.setChildren(new Vector<Node>());
+            for(int i = 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
+
+            }
+        }else if(rootNode.getOperation().equals("power(,)")){
+            rootNode.setChildren(new Vector<Node>());
+            for(int i = 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
+
+            }
+        }else if(rootNode.getOperation().equals("x")){
+            rootNode.setChildren(new Vector<Node>());
+        }else if(rootNode.getOperation().equals("R")){
+            rootNode.setValue(y.getRootNode().getValue());
+        }
+        setRootNode(rootNode);
+    }
+
+    private void insertCopy(Node node, Node otherNode,Node parentNode,Node otherParentNode){
+        node.setOperation(otherNode.getOperation());
+        if(node.getOperation().equals("sin")){
+            node.setChildren(new Vector<Node>());
+            for(int i= 0; i<1; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
+            }
+        }else if(node.getOperation().equals("cos")){
+            node.setChildren(new Vector<Node>());
+            for(int i= 0; i<1; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
+            }
+
+        }else if(node.getOperation().equals("/")){
+            node.setChildren(new Vector<Node>());
+            for(int i= 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
+            }
+
+        }else if(node.getOperation().equals("+")){
+            node.setChildren(new Vector<Node>());
+            for(int i= 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
+            }
+
+        }else if(node.getOperation().equals("-")){
+            node.setChildren(new Vector<Node>());
+            for(int i= 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
+            }
+
+        }else if(node.getOperation().equals(".")){
+            node.setChildren(new Vector<Node>());
+            for(int i= 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
+            }
+        }else if(node.getOperation().equals("power(,)")){
+            node.setChildren(new Vector<Node>());
+            for(int i= 0; i<2; i++){
+                Node newChild = new Node(random);
+                insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
+            }
+        }else if(node.getOperation().equals("x")){
+            node.setChildren(new Vector<Node>());
+
+        }else if(node.getOperation().equals("R")){
+            node.setChildren(new Vector<Node>());
+            node.setValue(otherNode.getValue());
+        }
+        parentNode.getChildren().add(node);
     }
 
 

@@ -17,13 +17,17 @@ public class Main {
         int numberOfEvals = 0;
         int populationSize = 0;
         int probabilityOfRecombination = 17;
+        int mutationDepth = 0;
         long randomSeed = 0L;
         int maxDepth = 3;
+        int numParents=0;
+        int kParents = 0;
         String solutionFile = "";
         String logFile = "";
         String dataFile = "";
         double penaltyScaler = 0.0;
         int counter = 0;
+        int mutationProbability = 0;
 
         while(s.hasNext()){
             if(counter == 0){
@@ -47,6 +51,14 @@ public class Main {
                 penaltyScaler = Double.parseDouble(s.next());
             }else if(counter == 9){
                 probabilityOfRecombination = Integer.parseInt(s.next());
+            }else if(counter == 10){
+                numParents = Integer.parseInt(s.next());
+            }else if(counter == 11){
+                kParents = Integer.parseInt(s.next());
+            }else if(counter == 12){
+                mutationDepth = Integer.parseInt(s.next());
+            }else if(counter == 13){
+                mutationProbability = Integer.parseInt(s.next());
             }
 
             counter++;
@@ -55,7 +67,8 @@ public class Main {
 
 
         GeneticProgram geneticProgram = new GeneticProgram(logFile,solutionFile,dataFile,numberOfRuns,
-                numberOfEvals,populationSize,probabilityOfRecombination,randomSeed,maxDepth,penaltyScaler);
+                numberOfEvals,populationSize,probabilityOfRecombination,randomSeed,maxDepth,penaltyScaler,numParents,
+                kParents,mutationDepth,mutationProbability);
         geneticProgram.GP();
 
 

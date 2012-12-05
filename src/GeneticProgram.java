@@ -1,4 +1,3 @@
-import java.awt.image.AreaAveragingScaleFilter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -12,6 +11,7 @@ public class GeneticProgram {
     private int numberOfRuns;
     private int numberOfEvals;
     private int populationSize;
+    private int mutationDepth;
     private double penaltyScalar;
     private int probabilityOfRecombination;
     private boolean isMutated;
@@ -19,6 +19,8 @@ public class GeneticProgram {
     private long randomSeed;
     private int maxDepth;
     boolean parentflagged = false;
+    private int numParents;
+    private int kParents;
     private PopulationTreeMember swapper1;
     private PopulationTreeMember swapper2;
     private Node child1;
@@ -29,6 +31,7 @@ public class GeneticProgram {
     private int numberOfPairs;
     private double[] xArray;
     private double[] yArray;
+    private int mutationProbability;
 
     public GeneticProgram() {
     }
@@ -36,7 +39,7 @@ public class GeneticProgram {
     public GeneticProgram(String theLogFile,String theSolutionFile,String theDataFile,
                           int numberOfRuns, int numberOfEvals, int populationSize,
                           int probabilityOfRecombination, long randomSeed,
-                          int maxDepth,double penaltyScalar) {
+                          int maxDepth,double penaltyScalar,int numParents, int kParents,int mutationDepth,int mutationProbability) {
         this.theLogFile = theLogFile;
         this.theSolutionFile = theSolutionFile;
         this.theDataFile = theDataFile;
@@ -52,6 +55,10 @@ public class GeneticProgram {
         this.theDataFile = theDataFile;
         this.theSolutionFile = theSolutionFile;
         this.penaltyScalar = penaltyScalar;
+        this.numParents = numParents;
+        this.kParents = kParents;
+        this.mutationDepth = mutationDepth;
+        this.mutationProbability = mutationProbability;
 
     }
 
@@ -64,11 +71,9 @@ public class GeneticProgram {
                 PopulationTreeMember populationTreeMember = new PopulationTreeMember(random,maxDepth);
 
                 populationTreeMember.setFitnessValue(xArray,yArray);
-                if(!Double.isNaN(populationTreeMember.getFitnessValue())&&!Double.isInfinite(populationTreeMember.getFitnessValue())){
+//                if(!Double.isNaN(populationTreeMember.getFitnessValue())&&!Double.isInfinite(populationTreeMember.getFitnessValue())){
                     populationTreeMembers.add(populationTreeMember);
-                }
-//                populationTreeMembers.add(populationTreeMember);
-
+//                }
             }
             //EVALUATE THE INITIAL POPULATION
             for(int j = 0; j<populationTreeMembers.size(); j++){
@@ -76,85 +81,114 @@ public class GeneticProgram {
 
             }
 
-            //EVALUATE THE NANS & INFINITY
+            //SET A VALUE FOR NANS & INFINITY
+            double  highestValue = getHighestValue(populationTreeMembers);
             for(int j = 0; j<populationTreeMembers.size(); j++){
-                if(Double.isNaN(populationTreeMembers.get(j).getFitnessValue())){
-                    populationTreeMembers.get(j).setFitnessValue(populationTreeMembers.get(j).getFitnessValue()+penaltyScalar);
+                if(Double.isNaN(populationTreeMembers.get(j).getFitnessValue())||Double.isInfinite(populationTreeMembers.get(j).getFitnessValue())){
+                    populationTreeMembers.get(j).setFitnessValue(highestValue);
                 }
             }
+
+            //EVALUATE THE NANS & INFINITY
             for(int j = 0; j<numberOfEvals; j++){
                 ArrayList<PopulationTreeMember> childPopulation = new ArrayList<PopulationTreeMember>();
                 ArrayList<PopulationTreeMember> parentPopulation = new ArrayList<PopulationTreeMember>();
-                //SORT PARENTS AND PLACE INTO PROPORTIONS
+                System.out.println("Run #: " + i + " Eval #: " + j);
 
-                insertionSort(populationTreeMembers);
+                //SELECT PARENTS
+                TournamentSelection(populationTreeMembers, parentPopulation);
+                while(childPopulation.size()<populationSize){
+                    int randomChoice = random.nextInt(100);
+                    if(randomChoice<=probabilityOfRecombination){
+                        int x = random.nextInt(parentPopulation.size());
+                        int y = random.nextInt(parentPopulation.size());
+                        treeCrossover(parentPopulation.get(x),parentPopulation.get(y),childPopulation);
+                    }else{
+                        treeMutation(parentPopulation,childPopulation);
+                    }
+                }
 
-//                while(childPopulation.size()<populationSize){
-//                    int randomChoice = random.nextInt(100);
-//                    if(randomChoice<=probabilityOfRecombination){
-////                        treeCrossover();
-//                    }else{
-//                        treeMutation(populationTreeMembers,childPopulation);
-//                    }
-//                }
 
-                //EVALUATE CHILDREN
 
                 //KILL ALL PARENTS, add all children
-
+                populationTreeMembers.clear();
+                assert(populationTreeMembers.size()==0);
+                populationTreeMembers.addAll(childPopulation);
+                for(int k = 0; k<populationTreeMembers.size(); k++){
+                    if(Double.isNaN(populationTreeMembers.get(k).getFitnessValue())||Double.isInfinite(populationTreeMembers.get(k).getFitnessValue())){
+                        populationTreeMembers.get(k).setFitnessValue(highestValue);
+                    }
+                }
+//                mergeSort(populationTreeMembers,0,populationTreeMembers.size()-1);
+//                System.out.println(populationTreeMembers.get(0).getFitnessValue());
 
             }
         }
     }
 
     private void treeCrossover(PopulationTreeMember parent1,PopulationTreeMember parent2,ArrayList<PopulationTreeMember> children){
-        setAllToFalse(parent1.getRootNode());
-        setAllToFalse(parent2.getRootNode());
+        PopulationTreeMember child1 = new PopulationTreeMember(random);
+        PopulationTreeMember child2 = new PopulationTreeMember(random);
+        child1.copy(parent1);
+        child2.copy(parent2);
+        setAllToFalse(child1.getRootNode());
+        setAllToFalse(child2.getRootNode());
         parentflagged = false;
         while(!parentflagged){
-            setPoint(parent1.getRootNode());
+            setPoint(child1.getRootNode());
         }
         parentflagged=false;
         while(!parentflagged){
-            setPoint(parent2.getRootNode());
+            setPoint(child2.getRootNode());
         }
 
         //Grab nodes to be swapped
         swapper1 = new PopulationTreeMember();
         swapper2 = new PopulationTreeMember();
-        setSwapper1(parent1.getRootNode());
-        setSwapper2(parent2.getRootNode());
+        setSwapper1(child1.getRootNode());
+        setSwapper2(child2.getRootNode());
 
-        PopulationTreeMember childNode = new PopulationTreeMember();
-        Node node = parent1.getRootNode();
-        childNode.setRootNode(node);
-        childNode.setRandom(random);
-        PopulationTreeMember  childNode2 =  new PopulationTreeMember();
-        childNode2.setRootNode(parent2.getRootNode());
-        childNode2.setRandom(random);
 
         //ChildNode exchanges with parent 2, ChildNode2 exchanges with parent1
-        swapNodes1(childNode);
-        swapNodes2(childNode2);
+        swapNodes1(child1);
+        swapNodes2(child2);
 
-
-        children.add(childNode);
+        child1.setFitnessValue(xArray,yArray);
+        child2.setFitnessValue(xArray,yArray);
+        children.add(child1);
         if(children.size()<populationSize){
-            children.add(childNode2);
+            children.add(child2);
         }
     }
 
 
 
-    private void fitnessProportionalSelection(ArrayList<PopulationTreeMember> population){
-
-
+    private void TournamentSelection(ArrayList<PopulationTreeMember> population,ArrayList<PopulationTreeMember> parentPopulation){
+        while(parentPopulation.size()<numParents){
+            int current_best = random.nextInt(population.size());
+            for(int i = 0; i<kParents-1; i++){
+                int index = random.nextInt(population.size());
+                if(population.get(index).getFitnessValue()<population.get(current_best).getFitnessValue()){
+                    current_best = index;
+                }
+            }
+            parentPopulation.add(population.get(current_best));
+        }
     }
 
     private void treeMutation(ArrayList<PopulationTreeMember> mutatePopulation,ArrayList<PopulationTreeMember> children){
-        PopulationTreeMember parent = mutatePopulation.get(random.nextInt(mutatePopulation.size()));
+        PopulationTreeMember parent;
+        parent = mutatePopulation.get(random.nextInt(mutatePopulation.size()));
         setAllMutateFlagsToFalse(parent.getRootNode());
-
+        isMutated = false;
+        PopulationTreeMember child = new PopulationTreeMember(random);
+        child.copy(parent);
+        setMutateFlag(child.getRootNode());
+        mutateNode(child.getRootNode());
+        child.setFitnessValue(xArray, yArray);
+        if(!Double.isInfinite(child.getFitnessValue())&&!Double.isNaN(child.getFitnessValue())){
+            children.add(child);
+        }
 
     }
 
@@ -184,6 +218,60 @@ public class GeneticProgram {
         node.setMutateFlag(false);
         for(int i = 0; i<node.getChildren().size();i++){
             setAllMutateFlagsToFalse(node.getChildren().get(i));
+        }
+    }
+
+    private void mutateNode(Node node){
+        if(!node.isMutateFlag()){
+            for(int i = 0; i<node.getChildren().size(); i++){
+                mutateNode(node.getChildren().get(i));
+            }
+        }else if(node.isMutateFlag()){
+            node.getChildren().clear();
+            node.setOperation(setOperation(0));
+            if(node.getOperation().equals("sin")){
+                for(int i = 0; i<1; i++){
+                    Node child = new Node(random);
+                    insertNode(child,node,0);
+                }
+            }else if(node.getOperation().equals("cos")){
+                for(int i = 0; i<1; i++){
+                    Node child = new Node(random);
+                    insertNode(child,node,0);
+                }
+
+            }else if(node.getOperation().equals("/")){
+                for(int i = 0; i<2; i++){
+                    Node child = new Node(random);
+                    insertNode(child,node,0);
+                }
+
+            }else if(node.getOperation().equals("+")){
+                for(int i = 0; i<2; i++){
+                    Node child = new Node(random);
+                    insertNode(child,node,0);
+                }
+
+            }else if(node.getOperation().equals("-")){
+                for(int i = 0; i<2; i++){
+                    Node child = new Node(random);
+                    insertNode(child,node,0);
+                }
+            }else if(node.getOperation().equals(".")){
+                for(int i = 0; i<2; i++){
+                    Node child = new Node(random);
+                    insertNode(child,node,0);
+                }
+            }else if(node.getOperation().equals("power(,)")){
+                for(int i = 0; i<2; i++){
+                    Node child = new Node(random);
+                    insertNode(child,node,0);
+                }
+            }else if(node.getOperation().equals("x")){
+
+            }else if(node.getOperation().equals("R")){
+                node.setValue((double)random.nextInt(50));
+            }
         }
     }
 
@@ -281,19 +369,149 @@ public class GeneticProgram {
         }
     }
 
-    private void insertionSort(ArrayList<PopulationTreeMember> populationTreeMembers){
-        for(int i = 1; i<populationTreeMembers.size(); i++){
-            int j = i;
-            PopulationTreeMember B = populationTreeMembers.get(i);
-            while((j>0)&&(populationTreeMembers.get(j-1).getFitnessValue()>B.getFitnessValue())){
-                populationTreeMembers.set(j,populationTreeMembers.get(j-1));
-                j--;
+    public void setMutateFlag(Node node){
+        int rando = random.nextInt(100);
+        if(rando<=mutationProbability){
+            node.setMutateFlag(true);
+            isMutated = true;
+            return;
+        }
+        for(int i = 0; i<node.getChildren().size(); i++){
+            if(!isMutated){
+                setMutateFlag(node.getChildren().get(i));
             }
-            populationTreeMembers.set(j,B);
         }
     }
 
+    private void insertNode(Node insertNode, Node parentNode,int depthcount){
+        insertNode.setOperation(setOperation(depthcount));
+        if(insertNode.getOperation().equals("sin")){
+            insertNode.setChildren(new Vector<Node>());
+            for(int i =0; i<1; i++){
+                Node newChild = new Node(random);
+                insertNode(newChild,insertNode,depthcount + 1);
+            }
 
+        }else if(insertNode.getOperation().equals("cos")){
+            insertNode.setChildren(new Vector<Node>());
+            for(int i =0; i<1; i++){
+                Node newChild = new Node(random);
+                insertNode(newChild,insertNode,depthcount + 1);
+            }
+
+        }else if(insertNode.getOperation().equals("/")){
+            insertNode.setChildren(new Vector<Node>());
+            for(int i =0; i<2; i++){
+                Node newChild = new Node(random);
+                insertNode(newChild,insertNode,depthcount+1);
+            }
+
+        }else if(insertNode.getOperation().equals("+")){
+            insertNode.setChildren(new Vector<Node>());
+            for(int i =0; i<2; i++){
+                Node newChild = new Node(random);
+                insertNode(newChild,insertNode,depthcount+1);
+            }
+
+        }else if(insertNode.getOperation().equals("-")){
+            insertNode.setChildren(new Vector<Node>());
+            for(int i =0; i<2; i++){
+                Node newChild = new Node(random);
+                insertNode(newChild,insertNode,depthcount+1);
+            }
+
+        }else if(insertNode.getOperation().equals(".")){
+            insertNode.setChildren(new Vector<Node>());
+            for(int i =0; i<2; i++){
+                Node newChild = new Node(random);
+                insertNode(newChild,insertNode,depthcount+1);
+            }
+
+        }else if(insertNode.getOperation().equals("power(,)")){
+            insertNode.setChildren(new Vector<Node>());
+            for(int i =0; i<2; i++){
+                Node newChild = new Node(random);
+                insertNode(newChild,insertNode,depthcount+1);
+            }
+
+        }else if(insertNode.getOperation().equals("x")){
+            insertNode.setChildren(new Vector<Node>());
+
+
+        }else if(insertNode.getOperation().equals("R")){
+            int choice = random.nextInt(2);
+            if(choice==1){
+                insertNode.setValue((double)random.nextInt(12));
+            }else{
+                insertNode.setValue((-1)*((double)random.nextInt(12)));
+            }
+        }
+        parentNode.getChildren().add(insertNode);
+    }
+
+    private String setOperation(int depthCount){
+        String[] choices = {"sin","cos",".","+","-","/","power(,)","R","x"};
+        if(depthCount>=mutationDepth-1){
+            int choice = random.nextInt(2);
+            if(choice==0){
+                return "x";
+            }else if(choice==1){
+                return "R";
+            }
+        }
+        int choice = random.nextInt(9);
+        return choices[choice];
+    }
+
+    private Double getAverageFitness(ArrayList<PopulationTreeMember> populationTreeMembers){
+        double averageFitness = 0;
+        for(int i = 0; i<populationTreeMembers.size(); i++){
+           averageFitness = averageFitness + populationTreeMembers.get(i).getFitnessValue();
+        }
+        return averageFitness/((double)populationTreeMembers.size());
+    }
+
+    private void mergeSort(ArrayList<PopulationTreeMember> sortingPopulation, int lo, int n){
+        int low = lo;
+        int high = n;
+        if(low >= high){
+            return;
+        }
+
+        int middle = (low + high)/2;
+        mergeSort(sortingPopulation, low,middle);
+        mergeSort(sortingPopulation, middle+1,high);
+        int end_low = middle;
+        int start_high = middle+1;
+
+        while((low <= end_low)&&(start_high<=high)){
+            if(sortingPopulation.get(low).getFitnessValue()<sortingPopulation.get(start_high).getFitnessValue()){
+                low++;
+            }
+            else{
+                PopulationTreeMember temp = sortingPopulation.get(start_high);
+                for(int k = start_high-1; k>=low; k--){
+                    sortingPopulation.set(k+1,sortingPopulation.get(k));
+                }
+                sortingPopulation.set(low,temp);
+                low++;
+                end_low++;
+                start_high++;
+            }
+        }
+    }
+
+    private double getHighestValue(ArrayList<PopulationTreeMember> populationTreeMembers){
+        double highestvalue = 0.0;
+        for(int i = 0; i<populationTreeMembers.size();i++){
+            if(!Double.isInfinite(populationTreeMembers.get(i).getFitnessValue())&&!Double.isNaN(populationTreeMembers.get(i).getFitnessValue())){
+                if(highestvalue<populationTreeMembers.get(i).getFitnessValue()){
+                    highestvalue = populationTreeMembers.get(i).getFitnessValue();
+                }
+            }
+        }
+        return highestvalue;
+    }
 
 
 }
