@@ -12,7 +12,7 @@ public class PopulationTreeMember {
     private boolean beenSurvivalSelected;
     private Node rootNode;
     private int maxDepth;
-
+    private int numOfNodes;
 
 
     /*
@@ -27,64 +27,95 @@ public class PopulationTreeMember {
         this.maxDepth = maxDepth;
         this.random = random;
         initialize();
+        setNumNodes();
+        setMaxDepth();
+    }
+
+    private void setNumNodes() {
+        this.numOfNodes = 1;
+        rootNode.setId(0);
+        recursiveNodeCounter(rootNode);
+    }
+
+    private void recursiveNodeCounter(Node node) {
+        for(int i = 0; i< node.getChildren().size(); i++){
+            node.getChildren().get(i).setId(numOfNodes);
+            numOfNodes++;
+            recursiveNodeCounter(node.getChildren().get(i));
+        }
     }
 
     public PopulationTreeMember(Random random) {
         this.random = random;
     }
 
+    public int getNumOfNodes() {
+        return numOfNodes;
+    }
+
+    public void setNumOfNodes(int numOfNodes) {
+        this.numOfNodes = numOfNodes;
+    }
+
     /*
-      Functions
-     */
-    private void insertNode(Node insertNode, Node parentNode,int depthcount){
-        insertNode.setOperation(setOperation(depthcount));
+     Functions
+    */
+    private void insertNode(Node insertNode, Node parentNode,int depthcount,int current_depth){
+        insertNode.setOperation(setOperation(current_depth));
         if(insertNode.getOperation().equals("sin")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<1; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount + 1);
+                newChild.setDepth(current_depth);
+                insertNode(newChild,insertNode,depthcount + 1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("cos")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<1; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount + 1);
+                newChild.setDepth(current_depth);
+                insertNode(newChild,insertNode,depthcount + 1,current_depth + 1);
             }
 
         }else if(insertNode.getOperation().equals("/")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(current_depth);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("+")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(current_depth);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("-")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(current_depth);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals(".")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(current_depth);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("power(,)")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(current_depth);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("x")){
@@ -105,55 +136,63 @@ public class PopulationTreeMember {
     private void initialize(){
         Node rootNode = new Node(random);
         rootNode.setParentNode(null);
+        rootNode.setDepth(0);
         int depthcount = 0;
         rootNode.setOperation(setOperation(depthcount));
         if(rootNode.getOperation().equals("sin")){
             rootNode.setChildren(new Vector<Node>());
             for(int i =0; i<1; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,rootNode,depthcount + 1);
+                newChild.setDepth(1);
+                insertNode(newChild,rootNode,depthcount + 1,1);
             }
 
         }else if(rootNode.getOperation().equals("cos")){
             rootNode.setChildren(new Vector<Node>());
             for(int i =0; i<1; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,rootNode,depthcount + 1);
+                newChild.setDepth(1);
+                insertNode(newChild,rootNode,depthcount + 1,1);
             }
 
         }else if(rootNode.getOperation().equals("/")){
             rootNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,rootNode,depthcount+1);
+                newChild.setDepth(1);
+                insertNode(newChild,rootNode,depthcount+1,1);
             }
 
         }else if(rootNode.getOperation().equals("+")){
             rootNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,rootNode,depthcount+1);
+                newChild.setDepth(1);
+                insertNode(newChild,rootNode,depthcount+1,1);
             }
 
         }else if(rootNode.getOperation().equals("-")){
             rootNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,rootNode,depthcount+1);
+                newChild.setDepth(1);
+                insertNode(newChild,rootNode,depthcount+1,1);
             }
 
         }else if(rootNode.getOperation().equals(".")){
             rootNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,rootNode,depthcount+1);
+                newChild.setDepth(1);
+                insertNode(newChild,rootNode,depthcount+1,1);
             }
 
         }else if(rootNode.getOperation().equals("power(,)")){
             rootNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,rootNode,depthcount+1);
+                newChild.setDepth(1);
+                insertNode(newChild,rootNode,depthcount+1,1);
             }
 
         }else if(rootNode.getOperation().equals("x")){
@@ -161,9 +200,9 @@ public class PopulationTreeMember {
         }else if(rootNode.getOperation().equals("R")){
             int choice = random.nextInt(2);
             if(choice==1){
-            rootNode.setValue((double)random.nextInt(Integer.MAX_VALUE));
+            rootNode.setValue(random.nextDouble());
             }else{
-                rootNode.setValue((-1)*((double)random.nextInt(Integer.MAX_VALUE)));
+                rootNode.setValue((-1)*(random.nextDouble()));
             }
 
         }
@@ -300,10 +339,12 @@ public class PopulationTreeMember {
         rootNode = new Node(random);
         rootNode.setParentNode(null);
         rootNode.setOperation(y.getRootNode().getOperation());
+        rootNode.setDepth(y.getRootNode().getDepth());
         if(rootNode.getOperation().equals("sin")){
             rootNode.setChildren(new Vector<Node>());
             for(int i = 0; i<1; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(rootNode.getDepth()+1);
                 insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
 
             }
@@ -311,6 +352,7 @@ public class PopulationTreeMember {
             rootNode.setChildren(new Vector<Node>());
             for(int i = 0; i<1; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(rootNode.getDepth()+1);
                 insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
 
             }
@@ -318,6 +360,7 @@ public class PopulationTreeMember {
             rootNode.setChildren(new Vector<Node>());
             for(int i = 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(rootNode.getDepth()+1);
                 insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
 
             }
@@ -325,6 +368,7 @@ public class PopulationTreeMember {
             rootNode.setChildren(new Vector<Node>());
             for(int i = 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(rootNode.getDepth()+1);
                 insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
 
             }
@@ -332,6 +376,7 @@ public class PopulationTreeMember {
             rootNode.setChildren(new Vector<Node>());
             for(int i = 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(rootNode.getDepth()+1);
                 insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
 
             }
@@ -339,6 +384,7 @@ public class PopulationTreeMember {
             rootNode.setChildren(new Vector<Node>());
             for(int i = 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(rootNode.getDepth()+1);
                 insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
 
             }
@@ -346,6 +392,7 @@ public class PopulationTreeMember {
             rootNode.setChildren(new Vector<Node>());
             for(int i = 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(rootNode.getDepth()+1);
                 insertCopy(newChild,y.getRootNode().getChildren().get(i),rootNode,y.getRootNode());
 
             }
@@ -355,6 +402,8 @@ public class PopulationTreeMember {
             rootNode.setValue(y.getRootNode().getValue());
         }
         setRootNode(rootNode);
+        setNumNodes();
+        setMaxDepth();
     }
 
     private void insertCopy(Node node, Node otherNode,Node parentNode,Node otherParentNode){
@@ -363,12 +412,14 @@ public class PopulationTreeMember {
             node.setChildren(new Vector<Node>());
             for(int i= 0; i<1; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(otherNode.getDepth()+1);
                 insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
             }
         }else if(node.getOperation().equals("cos")){
             node.setChildren(new Vector<Node>());
             for(int i= 0; i<1; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(otherNode.getDepth()+1);
                 insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
             }
 
@@ -376,6 +427,7 @@ public class PopulationTreeMember {
             node.setChildren(new Vector<Node>());
             for(int i= 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(otherNode.getDepth()+1);
                 insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
             }
 
@@ -383,6 +435,7 @@ public class PopulationTreeMember {
             node.setChildren(new Vector<Node>());
             for(int i= 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(otherNode.getDepth()+1);
                 insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
             }
 
@@ -390,6 +443,7 @@ public class PopulationTreeMember {
             node.setChildren(new Vector<Node>());
             for(int i= 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(otherNode.getDepth()+1);
                 insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
             }
 
@@ -397,12 +451,14 @@ public class PopulationTreeMember {
             node.setChildren(new Vector<Node>());
             for(int i= 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(otherNode.getDepth()+1);
                 insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
             }
         }else if(node.getOperation().equals("power(,)")){
             node.setChildren(new Vector<Node>());
             for(int i= 0; i<2; i++){
                 Node newChild = new Node(random);
+                newChild.setDepth(otherNode.getDepth()+1);
                 insertCopy(newChild,otherNode.getChildren().get(i),node,otherNode);
             }
         }else if(node.getOperation().equals("x")){
@@ -415,7 +471,37 @@ public class PopulationTreeMember {
         parentNode.getChildren().add(node);
     }
 
+    public void setMaxDepth(){
+        this.maxDepth = 0;
+        recursiveMaxDepth(rootNode);
 
+    }
+
+    private void recursiveMaxDepth(Node node){
+        for(int i = 0; i<node.getChildren().size();i++){
+            if(node.getChildren().get(i).getDepth()>maxDepth){
+                maxDepth = node.getChildren().get(i).getDepth();
+            }
+            recursiveMaxDepth(node.getChildren().get(i));
+        }
+
+    }
+
+    public void resetDepth(){
+        rootNode.setDepth(0);
+        for(int i = 0; i<rootNode.getChildren().size(); i++){
+            rootNode.getChildren().get(i).setDepth(1);
+            recursiveResetDepth(rootNode.getChildren().get(i));
+        }
+
+    }
+
+    private void recursiveResetDepth(Node node){
+        for(int i = 0;i<node.getChildren().size(); i++){
+            node.getChildren().get(i).setDepth(node.getDepth()+1);
+            recursiveResetDepth(node.getChildren().get(i));
+        }
+    }
 
 
 }

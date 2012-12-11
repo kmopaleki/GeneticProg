@@ -13,6 +13,8 @@ public class Node {
     private Node parentNode;
     private boolean swapFlag;
     private boolean mutateFlag;
+    private int id;
+    private int depth;
 
     public Node(Random random) {
         this.random = random;
@@ -75,5 +77,21 @@ public class Node {
 
     public void setMutateFlag(boolean mutateFlag) {
         this.mutateFlag = mutateFlag;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

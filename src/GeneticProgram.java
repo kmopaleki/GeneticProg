@@ -199,12 +199,22 @@ public class GeneticProgram {
         swapNodes1(child1);
         swapNodes2(child2);
 
+        child1.resetDepth();
+        //Repair child 1 if its necessary
+        repairTreeFunction(child1);
         child1.setFitnessValue(xArray,yArray);
-        child2.setFitnessValue(xArray,yArray);
         children.add(child1);
         if(children.size()<populationSize){
+            child2.resetDepth();
+            repairTreeFunction(child2);
+            child2.setFitnessValue(xArray,yArray);
             children.add(child2);
         }
+        String formula1p = parent1.getFormula(parent1.getRootNode());
+        String formula1 = child1.getFormula(child1.getRootNode());
+        String formula2p = parent2.getFormula(parent2.getRootNode());
+        String formula2 = child2.getFormula(child2.getRootNode());
+        return;
     }
 
 
@@ -225,19 +235,12 @@ public class GeneticProgram {
     private void treeMutation(ArrayList<PopulationTreeMember> mutatePopulation,ArrayList<PopulationTreeMember> children){
         PopulationTreeMember parent;
         parent = mutatePopulation.get(random.nextInt(mutatePopulation.size()));
-        setAllMutateFlagsToFalse(parent.getRootNode());
-        isMutated = false;
+        int mutationId = random.nextInt(parent.getNumOfNodes());
         PopulationTreeMember child = new PopulationTreeMember(random);
         child.copy(parent);
-        while (!isMutated){
-            setMutateFlag(child.getRootNode());
-        }
-        mutateNode(child.getRootNode());
-        child.setFitnessValue(xArray, yArray);
-//        if(!Double.isInfinite(child.getFitnessValue())&&!Double.isNaN(child.getFitnessValue())){
-            children.add(child);
-//        }
-
+        mutateNode(child.getRootNode(),mutationId);
+        child.setFitnessValue(xArray,yArray);
+        children.add(child);
     }
 
     private void setPoint(Node node){
@@ -262,58 +265,58 @@ public class GeneticProgram {
         }
     }
 
-    private void setAllMutateFlagsToFalse(Node node){
-        node.setMutateFlag(false);
-        for(int i = 0; i<node.getChildren().size();i++){
-            setAllMutateFlagsToFalse(node.getChildren().get(i));
-        }
-    }
-
-    private void mutateNode(Node node){
-        if(!node.isMutateFlag()){
+    private void mutateNode(Node node,int id){
+        if(node.getId()!=id){
             for(int i = 0; i<node.getChildren().size(); i++){
-                mutateNode(node.getChildren().get(i));
+                mutateNode(node.getChildren().get(i),id);
             }
-        }else if(node.isMutateFlag()){
+        }else if(node.getId()==id){
             node.getChildren().clear();
             node.setOperation(setOperation(0));
             if(node.getOperation().equals("sin")){
                 for(int i = 0; i<1; i++){
                     Node child = new Node(random);
-                    insertNode(child,node,0);
+                    child.setDepth(node.getDepth()+1);
+                    insertNode(child,node,maxDepth,node.getDepth());
                 }
             }else if(node.getOperation().equals("cos")){
                 for(int i = 0; i<1; i++){
                     Node child = new Node(random);
-                    insertNode(child,node,0);
+                    child.setDepth(node.getDepth()+1);
+                    insertNode(child,node,maxDepth,node.getDepth());
                 }
 
             }else if(node.getOperation().equals("/")){
                 for(int i = 0; i<2; i++){
                     Node child = new Node(random);
-                    insertNode(child,node,0);
+                    child.setDepth(node.getDepth()+1);
+                    insertNode(child,node,maxDepth,node.getDepth());
                 }
 
             }else if(node.getOperation().equals("+")){
                 for(int i = 0; i<2; i++){
                     Node child = new Node(random);
-                    insertNode(child,node,0);
+                    child.setDepth(node.getDepth()+1);
+                    insertNode(child,node,maxDepth,node.getDepth());
                 }
 
             }else if(node.getOperation().equals("-")){
                 for(int i = 0; i<2; i++){
                     Node child = new Node(random);
-                    insertNode(child,node,0);
+                    child.setDepth(node.getDepth()+1);
+                    insertNode(child,node,maxDepth,node.getDepth());
                 }
             }else if(node.getOperation().equals(".")){
                 for(int i = 0; i<2; i++){
                     Node child = new Node(random);
-                    insertNode(child,node,0);
+                    child.setDepth(node.getDepth()+1);
+                    insertNode(child,node,maxDepth,node.getDepth());
                 }
             }else if(node.getOperation().equals("power(,)")){
                 for(int i = 0; i<2; i++){
                     Node child = new Node(random);
-                    insertNode(child,node,0);
+                    child.setDepth(node.getDepth()+1);
+                    insertNode(child,node,maxDepth,node.getDepth());
                 }
             }else if(node.getOperation().equals("x")){
 
@@ -416,70 +419,62 @@ public class GeneticProgram {
             counter++;
         }
     }
-
-    public void setMutateFlag(Node node){
-        int rando = random.nextInt(100);
-        if(rando<=mutationProbability){
-            node.setMutateFlag(true);
-            isMutated = true;
-            return;
-        }
-        for(int i = 0; i<node.getChildren().size(); i++){
-            if(!isMutated){
-                setMutateFlag(node.getChildren().get(i));
-            }
-        }
-    }
-
-    private void insertNode(Node insertNode, Node parentNode,int depthcount){
+    private void insertNode(Node insertNode, Node parentNode,int depthcount,int current_depth){
         insertNode.setOperation(setOperation(depthcount));
         if(insertNode.getOperation().equals("sin")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<1; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount + 1);
+                newChild.setDepth(insertNode.getDepth()+1);
+                insertNode(newChild,insertNode,depthcount + 1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("cos")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<1; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount + 1);
+                newChild.setDepth(insertNode.getDepth()+1);
+                insertNode(newChild,insertNode,depthcount + 1,current_depth + 1);
             }
 
         }else if(insertNode.getOperation().equals("/")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(insertNode.getDepth()+1);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("+")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(insertNode.getDepth()+1);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("-")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(insertNode.getDepth()+1);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals(".")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(insertNode.getDepth()+1);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("power(,)")){
             insertNode.setChildren(new Vector<Node>());
             for(int i =0; i<2; i++){
                 Node newChild = new Node(random);
-                insertNode(newChild,insertNode,depthcount+1);
+                newChild.setDepth(insertNode.getDepth()+1);
+                insertNode(newChild,insertNode,depthcount+1,current_depth+1);
             }
 
         }else if(insertNode.getOperation().equals("x")){
@@ -489,9 +484,9 @@ public class GeneticProgram {
         }else if(insertNode.getOperation().equals("R")){
             int choice = random.nextInt(2);
             if(choice==1){
-                insertNode.setValue((double)random.nextInt(Integer.MAX_VALUE));
+                insertNode.setValue((double)random.nextInt(12));
             }else{
-                insertNode.setValue((-1)*((double)random.nextInt(Integer.MAX_VALUE)));
+                insertNode.setValue((-1)*((double)random.nextInt(12)));
             }
         }
         parentNode.getChildren().add(insertNode);
@@ -559,6 +554,32 @@ public class GeneticProgram {
             }
         }
         return highestvalue;
+    }
+
+    private void repairTreeFunction(PopulationTreeMember treeMember){
+        for(int i = 0; i<treeMember.getRootNode().getChildren().size(); i++){
+            recursiveRepair(treeMember.getRootNode().getChildren().get(i));
+        }
+    }
+
+    private void recursiveRepair(Node node){
+        if(node.getDepth()==maxDepth){
+            if(node.getOperation()!="R"&&node.getOperation()!="x"){
+                //We need to repair the function
+                int randomChange = random.nextInt(2);
+                node.getChildren().clear();
+                if(randomChange==0){
+                    node.setOperation("R");
+                    node.setValue((double)random.nextInt(12));
+                }else if(randomChange==1){
+                    node.setOperation("x");
+                }
+            }
+        }else{
+            for(int i = 0; i<node.getChildren().size(); i++){
+                recursiveRepair(node.getChildren().get(i));
+            }
+        }
     }
 
 
