@@ -23,6 +23,7 @@ public class Main {
         int maxDepth = 3;
         int numParents=0;
         int kParents = 0;
+        int numChildren = 0;
         String solutionFile = "";
         String logFile = "";
         String dataFile = "";
@@ -60,6 +61,8 @@ public class Main {
                 mutationDepth = Integer.parseInt(s.next());
             }else if(counter == 13){
                 mutationProbability = Integer.parseInt(s.next());
+            }else if(counter == 14){
+                numChildren = Integer.parseInt(s.next());
             }
 
             counter++;
@@ -69,7 +72,7 @@ public class Main {
 
         GeneticProgram geneticProgram = new GeneticProgram(logFile,solutionFile,dataFile,numberOfRuns,
                 numberOfEvals,populationSize,probabilityOfRecombination,randomSeed,maxDepth,penaltyScaler,numParents,
-                kParents,mutationDepth,mutationProbability);
+                kParents,mutationDepth,mutationProbability,numChildren);
         geneticProgram.GP();
 
 

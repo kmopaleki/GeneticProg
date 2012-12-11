@@ -19,6 +19,7 @@ public class GeneticProgram {
     private int maxDepth;
     boolean parentflagged = false;
     private int numParents;
+    private int numChildren;
     private int kParents;
     private PopulationTreeMember swapper1;
     private PopulationTreeMember swapper2;
@@ -38,7 +39,8 @@ public class GeneticProgram {
     public GeneticProgram(String theLogFile,String theSolutionFile,String theDataFile,
                           int numberOfRuns, int numberOfEvals, int populationSize,
                           int probabilityOfRecombination, long randomSeed,
-                          int maxDepth,double penaltyScalar,int numParents, int kParents,int mutationDepth,int mutationProbability) {
+                          int maxDepth,double penaltyScalar,int numParents, int kParents,int mutationDepth,int mutationProbability,
+                          int numChildren) {
         this.theLogFile = theLogFile;
         this.theSolutionFile = theSolutionFile;
         this.theDataFile = theDataFile;
@@ -58,6 +60,7 @@ public class GeneticProgram {
         this.kParents = kParents;
         this.mutationDepth = mutationDepth;
         this.mutationProbability = mutationProbability;
+        this.numChildren = numChildren;
 
     }
 
@@ -82,7 +85,7 @@ public class GeneticProgram {
         String currentOverAllBestString = "";
         for(int i = 0; i<numberOfRuns; i++){
             //Initialize the Population
-            int childcounter = populationSize;
+            int childcounter = numChildren;
             buildXYArrays();
             ArrayList<PopulationTreeMember> populationTreeMembers = new ArrayList<PopulationTreeMember>();
             while(populationTreeMembers.size()<populationSize){
@@ -105,7 +108,6 @@ public class GeneticProgram {
                 }
             }
             double currentLocalBest;
-            mergeSort(populationTreeMembers,0,populationTreeMembers.size()-1);
             currentLocalBest = populationTreeMembers.get(0).getFitnessValue();
             String currentBestFormula = populationTreeMembers.get(0).getFormula(populationTreeMembers.get(0).getRootNode());
             if(i==0){
@@ -125,7 +127,9 @@ public class GeneticProgram {
 
                 //SELECT PARENTS
                 TournamentSelection(populationTreeMembers, parentPopulation);
-                while(childPopulation.size()<populationSize){
+
+                //Determine CrossOver or Mutation
+                while(childPopulation.size()<numChildren){
                     int randomChoice = random.nextInt(100);
                     if(randomChoice<=probabilityOfRecombination){
                         int x = random.nextInt(parentPopulation.size());
@@ -135,19 +139,16 @@ public class GeneticProgram {
                         treeMutation(parentPopulation,childPopulation);
                     }
                 }
-                //KILL ALL PARENTS, add all children
-                populationTreeMembers.clear();
-                assert(populationTreeMembers.size()==0);
-                populationTreeMembers.addAll(childPopulation);
+                //SURVIVAL SELECTION - TOURNAMENT
                 highestValue = getHighestValue(populationTreeMembers);
-
-                for(int k = 0; k<populationTreeMembers.size(); k++){
-                    if(Double.isNaN(populationTreeMembers.get(k).getFitnessValue())||Double.isInfinite(populationTreeMembers.get(k).getFitnessValue())){
-                        populationTreeMembers.get(k).setFitnessValue(highestValue);
+                for(int k = 0; k<childPopulation.size(); k++){
+                    if(Double.isNaN(childPopulation.get(k).getFitnessValue())||Double.isInfinite(childPopulation.get(k).getFitnessValue())){
+                        childPopulation.get(k).setFitnessValue(highestValue);
                     }
                 }
-                mergeSort(populationTreeMembers,0,populationTreeMembers.size()-1);
-
+                populationTreeMembers.addAll(childPopulation);
+                TournamentSurvivalSelection(populationTreeMembers);
+                insertionSort(populationTreeMembers);
                 currentLocalBest = populationTreeMembers.get(0).getFitnessValue();
                 currentBestFormula = populationTreeMembers.get(0).getFormula(populationTreeMembers.get(0).getRootNode());
                 if(currentLocalBest<currentOverAllBest){
@@ -155,10 +156,10 @@ public class GeneticProgram {
                     currentOverAllBestString = currentBestFormula;
                 }
 
-                if(evalCounter%populationSize==0){
+                if(evalCounter%numChildren==0){
                     double localAverage = getAverageFitness(populationTreeMembers);
                     outLog.write(childcounter + "\t" + (-1)*localAverage + "\t" + (-1)*currentLocalBest + "\r\n");
-                    childcounter = childcounter + populationSize;
+                    childcounter = childcounter + numChildren;
                 }
 
 
@@ -204,7 +205,7 @@ public class GeneticProgram {
         repairTreeFunction(child1);
         child1.setFitnessValue(xArray,yArray);
         children.add(child1);
-        if(children.size()<populationSize){
+        if(children.size()<numChildren){
             child2.resetDepth();
             repairTreeFunction(child2);
             child2.setFitnessValue(xArray,yArray);
@@ -229,6 +230,36 @@ public class GeneticProgram {
                 }
             }
             parentPopulation.add(population.get(current_best));
+        }
+    }
+
+    private void TournamentSurvivalSelection(ArrayList<PopulationTreeMember> populationTreeMembers){
+        while(populationTreeMembers.size()>populationSize){
+            int current_worst = random.nextInt(populationTreeMembers.size());
+            for(int i = 0; i<kParents-1; i++){
+                int index = random.nextInt(populationTreeMembers.size());
+                if(populationTreeMembers.get(index).getFitnessValue()>populationTreeMembers.get(current_worst).getFitnessValue()){
+                    current_worst = index;
+                }else if(populationTreeMembers.get(index).getFitnessValue()==populationTreeMembers.get(current_worst).getFitnessValue()){
+                    if(populationTreeMembers.get(index).getNumOfNodes()>populationTreeMembers.get(current_worst).getNumOfNodes()){
+                        current_worst = index;
+                    }
+                }
+            }
+            populationTreeMembers.remove(current_worst);
+        }
+    }
+
+    private void insertionSort(ArrayList<PopulationTreeMember> populationTreeMembers){
+        for(int i = 1; i<populationTreeMembers.size(); i++){
+            int j = i;
+            PopulationTreeMember temp = populationTreeMembers.get(j);
+
+            while((j>0)&&(populationTreeMembers.get(j-1).getFitnessValue()>temp.getFitnessValue())){
+                populationTreeMembers.set(j,populationTreeMembers.get(j-1));
+                j--;
+            }
+            populationTreeMembers.set(j,temp);
         }
     }
 
@@ -514,35 +545,16 @@ public class GeneticProgram {
         return averageFitness/((double)populationTreeMembers.size());
     }
 
-    private void mergeSort(ArrayList<PopulationTreeMember> sortingPopulation, int lo, int n){
-        int low = lo;
-        int high = n;
-        if(low >= high){
-            return;
-        }
 
-        int middle = (low + high)/2;
-        mergeSort(sortingPopulation, low,middle);
-        mergeSort(sortingPopulation, middle+1,high);
-        int end_low = middle;
-        int start_high = middle+1;
 
-        while((low <= end_low)&&(start_high<=high)){
-            if(sortingPopulation.get(low).getFitnessValue()<sortingPopulation.get(start_high).getFitnessValue()){
-                low++;
-            }
-            else{
-                PopulationTreeMember temp = sortingPopulation.get(start_high);
-                for(int k = start_high-1; k>=low; k--){
-                    sortingPopulation.set(k+1,sortingPopulation.get(k));
-                }
-                sortingPopulation.set(low,temp);
-                low++;
-                end_low++;
-                start_high++;
-            }
+    private void Truncation(ArrayList<PopulationTreeMember> populationTreeMembers){
+        //THIS IS ASSUMING MERGE SORT WAS IMPLEMENTED ALREADY
+        //AND WE HAVE SORTED FROM MOST TO LEAST FIT
+        while (populationTreeMembers.size()>populationSize){
+            populationTreeMembers.remove(populationTreeMembers.size()-1);
         }
     }
+
 
     private double getHighestValue(ArrayList<PopulationTreeMember> populationTreeMembers){
         double highestvalue = 0.0;
