@@ -30,6 +30,7 @@ public class Main {
         double penaltyScaler = 0.0;
         int counter = 0;
         int mutationProbability = 0;
+        int survivalStrat = 0;
 
         while(s.hasNext()){
             if(counter == 0){
@@ -58,6 +59,8 @@ public class Main {
                 mutationDepth = Integer.parseInt(s.next());
             }else if(counter == 12){
                 numChildren = Integer.parseInt(s.next());
+            }else if(counter == 13){
+                survivalStrat = Integer.parseInt(s.next());
             }
 
             counter++;
@@ -67,7 +70,7 @@ public class Main {
 
         GeneticProgram geneticProgram = new GeneticProgram(logFile,solutionFile,dataFile,numberOfRuns,
                 numberOfEvals,populationSize,probabilityOfRecombination,randomSeed,maxDepth,numParents,
-                kParents,mutationDepth,numChildren);
+                kParents,mutationDepth,numChildren,survivalStrat);
         geneticProgram.GP();
 
 

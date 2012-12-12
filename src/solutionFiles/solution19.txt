@@ -1,0 +1,1 @@
+(((((x + -1.0) + sin(power(x,26.0))) + cos(power(x,29.0))) + (cos(power(x,29.0)) + cos((x / 5.0)))) + ((cos(power(x,33.0)) + cos((x / 6.0))) + (cos(power(x,33.0)) + cos((x / 5.0)))))

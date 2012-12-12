@@ -27,6 +27,7 @@ public class GeneticProgram {
     private int numberOfPairs;
     private double[] xArray;
     private double[] yArray;
+    private int survivalStrat;
 
     public GeneticProgram() {
     }
@@ -35,7 +36,7 @@ public class GeneticProgram {
                           int numberOfRuns, int numberOfEvals, int populationSize,
                           int probabilityOfRecombination, long randomSeed,
                           int maxDepth,int numParents, int kParents,int mutationDepth,
-                          int numChildren) {
+                          int numChildren,int survivalStrat) {
         this.theLogFile = theLogFile;
         this.theSolutionFile = theSolutionFile;
         this.theDataFile = theDataFile;
@@ -54,6 +55,7 @@ public class GeneticProgram {
         this.kParents = kParents;
         this.mutationDepth = mutationDepth;
         this.numChildren = numChildren;
+        this.survivalStrat = survivalStrat;
 
     }
 
@@ -63,14 +65,17 @@ public class GeneticProgram {
         FileWriter SolutionFile = new FileWriter(theSolutionFile,true);
         BufferedWriter outLog = new BufferedWriter(LogFile);
         BufferedWriter solutionLog = new BufferedWriter(SolutionFile);
-
+        String strat = "";
+        if(survivalStrat == 0){
+            strat = "Plus";
+        }else if(survivalStrat ==1){
+            strat = "Comma";
+        }
         outLog.write("Result Log" + "\r\n");
         outLog.write("Number of Runs: " + "Number of Evaluations per Run: " + numberOfEvals+ "\r\n");
         outLog.write("Population Size: " + populationSize + "\r\n");
-        outLog.write("Number of Parents: " + numParents + "\r\n");
-        outLog.write("Parent SelectionALg: " + "Tournament Selection" + "\r\n");
-        outLog.write("kParents: " + kParents + "\r\n");
-        outLog.write("Probability of Recombination: " + (double)probabilityOfRecombination/(double)100 + "\r\n");
+        outLog.write("maxDepth: " + maxDepth + "\r\n");
+        outLog.write("Initial Survival Strat:" + strat + "\r\n");
         outLog.write("Result Log" + "\r\n");
 
         double currentOverAllBest = 0.00;
@@ -121,7 +126,7 @@ public class GeneticProgram {
                 TournamentSelection(populationTreeMembers, parentPopulation);
 
                 //Determine CrossOver or Mutation
-                while(childPopulation.size()<numChildren){
+                while(childPopulation.size()<populationSize){
                     int randomChoice = random.nextInt(100);
                     if(randomChoice<=probabilityOfRecombination){
                         int x = random.nextInt(parentPopulation.size());
@@ -138,17 +143,21 @@ public class GeneticProgram {
                         childPopulation.get(k).setFitnessValue(highestValue);
                     }
                 }
-                populationTreeMembers.addAll(childPopulation);
-                TournamentSurvivalSelection(populationTreeMembers);
+                if(survivalStrat==0){
+                    populationTreeMembers.addAll(childPopulation);
+                    TournamentSurvivalSelection(populationTreeMembers);
+                }else if(survivalStrat==1){
+                    populationTreeMembers.clear();
+                    populationTreeMembers.addAll(childPopulation);
+                }
                 insertionSort(populationTreeMembers);
                 currentLocalBest = populationTreeMembers.get(0).getFitnessValue();
                 int diversity = diversity(populationTreeMembers);
-                if(diversity<=((0.10)*(populationSize))){
-//                    populationSize++;
-                    numChildren++;
+                if(diversity<=((0.20)*(populationSize))){
+                    survivalStrat = 1;
                 }
-                else if(diversity>((0.40)*populationSize)){
-                    numChildren--;
+                else if(diversity>=((0.60)*populationSize)){
+                    survivalStrat = 0;
                 }
                 currentBestFormula = populationTreeMembers.get(0).getFormula(populationTreeMembers.get(0).getRootNode());
 
@@ -159,7 +168,7 @@ public class GeneticProgram {
 
                 if(evalCounter%numChildren==0){
                     double localAverage = getAverageFitness(populationTreeMembers);
-                    outLog.write(childcounter + "\t" + (-1)*localAverage + "\t" + (-1)*currentLocalBest + "\r\n");
+                    outLog.write(childcounter + "\t" + (-1)*localAverage + "\t" + (-1)*currentLocalBest + "\t"+diversity+ "\t"+survivalStrat + "\r\n");
                     childcounter = childcounter + numChildren;
                 }
 
@@ -526,7 +535,7 @@ public class GeneticProgram {
 
     private String setOperation(int depthCount){
         String[] choices = {"sin","cos",".","+","-","/","power(,)","R","x"};
-        if(depthCount>=mutationDepth-1){
+        if(depthCount>=maxDepth-1){
             int choice = random.nextInt(2);
             if(choice==0){
                 return "x";
