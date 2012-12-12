@@ -48,20 +48,15 @@ public class Main {
                 randomSeed = Long.parseLong(s.next());
             }else if(counter == 7){
                 maxDepth = Integer.parseInt(s.next());
-
             }else if(counter == 8){
-                penaltyScaler = Double.parseDouble(s.next());
-            }else if(counter == 9){
                 probabilityOfRecombination = Integer.parseInt(s.next());
-            }else if(counter == 10){
+            }else if(counter == 9){
                 numParents = Integer.parseInt(s.next());
-            }else if(counter == 11){
+            }else if(counter == 10){
                 kParents = Integer.parseInt(s.next());
-            }else if(counter == 12){
+            }else if(counter == 11){
                 mutationDepth = Integer.parseInt(s.next());
-            }else if(counter == 13){
-                mutationProbability = Integer.parseInt(s.next());
-            }else if(counter == 14){
+            }else if(counter == 12){
                 numChildren = Integer.parseInt(s.next());
             }
 
@@ -71,8 +66,8 @@ public class Main {
 
 
         GeneticProgram geneticProgram = new GeneticProgram(logFile,solutionFile,dataFile,numberOfRuns,
-                numberOfEvals,populationSize,probabilityOfRecombination,randomSeed,maxDepth,penaltyScaler,numParents,
-                kParents,mutationDepth,mutationProbability,numChildren);
+                numberOfEvals,populationSize,probabilityOfRecombination,randomSeed,maxDepth,numParents,
+                kParents,mutationDepth,numChildren);
         geneticProgram.GP();
 
 

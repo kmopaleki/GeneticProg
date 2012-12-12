@@ -11,9 +11,7 @@ public class GeneticProgram {
     private int numberOfEvals;
     private int populationSize;
     private int mutationDepth;
-    private double penaltyScalar;
     private int probabilityOfRecombination;
-    private boolean isMutated;
     private Random random;
     private long randomSeed;
     private int maxDepth;
@@ -23,15 +21,12 @@ public class GeneticProgram {
     private int kParents;
     private PopulationTreeMember swapper1;
     private PopulationTreeMember swapper2;
-    private Node child1;
-    private Node child2;
     private String theLogFile;
     private String theSolutionFile;
     private String theDataFile;
     private int numberOfPairs;
     private double[] xArray;
     private double[] yArray;
-    private int mutationProbability;
 
     public GeneticProgram() {
     }
@@ -39,7 +34,7 @@ public class GeneticProgram {
     public GeneticProgram(String theLogFile,String theSolutionFile,String theDataFile,
                           int numberOfRuns, int numberOfEvals, int populationSize,
                           int probabilityOfRecombination, long randomSeed,
-                          int maxDepth,double penaltyScalar,int numParents, int kParents,int mutationDepth,int mutationProbability,
+                          int maxDepth,int numParents, int kParents,int mutationDepth,
                           int numChildren) {
         this.theLogFile = theLogFile;
         this.theSolutionFile = theSolutionFile;
@@ -55,11 +50,9 @@ public class GeneticProgram {
         this.theLogFile = theLogFile;
         this.theDataFile = theDataFile;
         this.theSolutionFile = theSolutionFile;
-        this.penaltyScalar = penaltyScalar;
         this.numParents = numParents;
         this.kParents = kParents;
         this.mutationDepth = mutationDepth;
-        this.mutationProbability = mutationProbability;
         this.numChildren = numChildren;
 
     }
@@ -77,7 +70,6 @@ public class GeneticProgram {
         outLog.write("Number of Parents: " + numParents + "\r\n");
         outLog.write("Parent SelectionALg: " + "Tournament Selection" + "\r\n");
         outLog.write("kParents: " + kParents + "\r\n");
-        outLog.write("Probability of Mutation: " + (double)mutationProbability/(double)100 + "\r\n");
         outLog.write("Probability of Recombination: " + (double)probabilityOfRecombination/(double)100 + "\r\n");
         outLog.write("Result Log" + "\r\n");
 
@@ -150,7 +142,16 @@ public class GeneticProgram {
                 TournamentSurvivalSelection(populationTreeMembers);
                 insertionSort(populationTreeMembers);
                 currentLocalBest = populationTreeMembers.get(0).getFitnessValue();
+                int diversity = diversity(populationTreeMembers);
+                if(diversity<=((0.10)*(populationSize))){
+//                    populationSize++;
+                    numChildren++;
+                }
+                else if(diversity>((0.40)*populationSize)){
+                    numChildren--;
+                }
                 currentBestFormula = populationTreeMembers.get(0).getFormula(populationTreeMembers.get(0).getRootNode());
+
                 if(currentLocalBest<currentOverAllBest){
                     currentOverAllBest = currentLocalBest;
                     currentOverAllBestString = currentBestFormula;
@@ -515,9 +516,9 @@ public class GeneticProgram {
         }else if(insertNode.getOperation().equals("R")){
             int choice = random.nextInt(2);
             if(choice==1){
-                insertNode.setValue((double)random.nextInt(12));
+                insertNode.setValue((double)random.nextInt(50));
             }else{
-                insertNode.setValue((-1)*((double)random.nextInt(12)));
+                insertNode.setValue((-1)*((double)random.nextInt(50)));
             }
         }
         parentNode.getChildren().add(insertNode);
@@ -594,5 +595,27 @@ public class GeneticProgram {
         }
     }
 
+    private int diversity(ArrayList<PopulationTreeMember> treeMembers){
+        ArrayList<PopulationTreeMember> foundMembers = new ArrayList<PopulationTreeMember>();
+        foundMembers.add(treeMembers.get(0));
+        for(int i = 1; i<treeMembers.size(); i++){
+            if(isUnique(treeMembers.get(i),foundMembers)){
+                foundMembers.add(treeMembers.get(i));
+            }
+        }
+        return foundMembers.size();
+
+    }
+
+    private boolean isUnique(PopulationTreeMember node,ArrayList<PopulationTreeMember> members){
+        for(int i = 0; i<members.size(); i++){
+           if(node.getFitnessValue()==members.get(i).getFitnessValue()){
+               return false;
+           }
+        }
+
+        return true;
+
+    }
 
 }

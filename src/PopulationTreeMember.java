@@ -200,9 +200,9 @@ public class PopulationTreeMember {
         }else if(rootNode.getOperation().equals("R")){
             int choice = random.nextInt(2);
             if(choice==1){
-            rootNode.setValue(random.nextDouble());
+            rootNode.setValue((double)(random.nextInt(Integer.MAX_VALUE)));
             }else{
-                rootNode.setValue((-1)*(random.nextDouble()));
+                rootNode.setValue((-1)*((double)random.nextInt(Integer.MAX_VALUE)));
             }
 
         }
